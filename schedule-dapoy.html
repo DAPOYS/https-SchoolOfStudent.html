@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Jadwal Mingguanku</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F5F2EC;--card:#FFFFFF;--border:#E8E4DC;--border-light:#F0EDE7;
+  --text:#2A2825;--text-2:#8C8880;--text-3:#B8B4AE;
+  --accent:#D4537E;--accent2:#B8406A;
+  --pink-bg:#F2C4CE;--pink-bd:#D4859A;--pink-tx:#6B2D3E;
+  --teal-bg:#BACFCA;--teal-bd:#7AADA6;--teal-tx:#1E4A45;
+  --gray-bg:#D8D5CE;--gray-bd:#A9A59E;--gray-tx:#3A3730;
+  --coral-bg:#F5C4B0;--coral-bd:#D4845A;--coral-tx:#6B2D10;
+  --purple-bg:#CEC8F0;--purple-bd:#8B82D8;--purple-tx:#2D2560;
+  --amber-bg:#F5D89A;--amber-bd:#C4A030;--amber-tx:#5A4010;
+  --blue-bg:#B8D4EE;--blue-bd:#6B9EC8;--blue-tx:#1A3A58;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px 20px;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:10px;flex-wrap:wrap;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar h1{font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em;min-width:140px;text-align:center;}
+.nav-btn{background:none;border:0.5px solid var(--border);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);font-size:15px;transition:background .12s;}
+.nav-btn:hover{background:var(--card);}
+.today-btn{background:none;border:0.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;transition:background .12s;}
+.today-btn:hover{background:var(--card);}
+.add-btn{background:var(--accent);border:none;border-radius:999px;padding:8px 18px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;transition:background .12s;}
+.add-btn:hover{background:var(--accent2);}
+
+.cal-card{background:var(--card);border-radius:18px;border:0.5px solid var(--border);overflow:hidden;width:100%;}
+.cal-header{display:grid;grid-template-columns:52px repeat(5,1fr);border-bottom:0.5px solid var(--border);}
+.h-corner{border-right:0.5px solid var(--border-light);}
+.h-day{padding:12px 8px 10px;text-align:center;border-right:0.5px solid var(--border-light);cursor:default;}
+.h-day:last-child{border-right:none;}
+.h-day .dn{font-size:10px;font-weight:500;color:var(--text-2);text-transform:uppercase;letter-spacing:.08em;}
+.h-day .dd{font-size:21px;font-weight:400;color:var(--text);margin-top:3px;line-height:1;}
+.h-day.today .dd{background:var(--accent);color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:3px auto 0;font-size:17px;font-weight:600;}
+
+.allday-row{display:grid;grid-template-columns:52px repeat(5,1fr);border-bottom:0.5px solid var(--border);min-height:30px;}
+.allday-label{font-size:9px;font-weight:500;letter-spacing:.05em;color:var(--text-3);padding:6px 5px 0 0;text-align:right;border-right:0.5px solid var(--border-light);text-transform:uppercase;}
+.allday-cell{padding:3px 4px;border-right:0.5px solid var(--border-light);display:flex;flex-direction:column;gap:2px;}
+.allday-cell:last-child{border-right:none;}
+.ad-tag{font-size:10px;font-weight:500;padding:2px 7px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.ad-tag.pink{background:var(--pink-bg);color:var(--pink-tx);}
+.ad-tag.teal{background:var(--teal-bg);color:var(--teal-tx);}
+.ad-tag.gray{background:var(--gray-bg);color:var(--gray-tx);}
+.ad-tag.blue{background:var(--blue-bg);color:var(--blue-tx);}
+.ad-tag.coral{background:var(--coral-bg);color:var(--coral-tx);}
+.ad-tag.purple{background:var(--purple-bg);color:var(--purple-tx);}
+.ad-tag.amber{background:var(--amber-bg);color:var(--amber-tx);}
+
+.grid-scroll{overflow-y:auto;max-height:68vh;}
+.grid-body{display:grid;grid-template-columns:52px repeat(5,1fr);position:relative;}
+.time-col{border-right:0.5px solid var(--border-light);}
+.t-slot{height:56px;display:flex;align-items:flex-start;justify-content:flex-end;padding:4px 7px 0 0;font-size:10px;color:var(--text-3);border-bottom:0.5px solid var(--border-light);}
+.t-slot.noon{color:var(--text-2);font-weight:500;}
+.day-col{border-right:0.5px solid var(--border-light);position:relative;background:transparent;}
+.day-col:last-child{border-right:none;}
+.day-col.today-col{background:rgba(212,83,126,.025);}
+.h-line{height:56px;border-bottom:0.5px solid var(--border-light);}
+
+.ev{position:absolute;left:3px;right:3px;border-radius:8px;padding:5px 7px;overflow:hidden;cursor:pointer;transition:opacity .14s,transform .1s;}
+.ev:hover{opacity:.85;transform:scale(1.015);}
+.ev .et{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
+.ev .es{font-size:10px;opacity:.68;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ev .link-icon{font-size:9px;margin-top:2px;opacity:.65;}
+.ev.pink{background:var(--pink-bg);color:var(--pink-tx);border-left:3px solid var(--pink-bd);}
+.ev.teal{background:var(--teal-bg);color:var(--teal-tx);border-left:3px solid var(--teal-bd);}
+.ev.gray{background:var(--gray-bg);color:var(--gray-tx);border-left:3px solid var(--gray-bd);}
+.ev.coral{background:var(--coral-bg);color:var(--coral-tx);border-left:3px solid var(--coral-bd);}
+.ev.purple{background:var(--purple-bg);color:var(--purple-tx);border-left:3px solid var(--purple-bd);}
+.ev.amber{background:var(--amber-bg);color:var(--amber-tx);border-left:3px solid var(--amber-bd);}
+.ev.blue{background:var(--blue-bg);color:var(--blue-tx);border-left:3px solid var(--blue-bd);}
+
+.now-line{position:absolute;left:0;right:0;display:flex;align-items:center;z-index:20;pointer-events:none;}
+.now-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-left:-1px;}
+.now-bar{flex:1;height:1.5px;background:var(--accent);}
+
+.legend{display:flex;gap:12px;flex-wrap:wrap;padding:9px 12px 11px;}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-2);}
+.li-dot{width:8px;height:8px;border-radius:50%;}
+
+/* DETAIL POPUP */
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.22);z-index:300;align-items:center;justify-content:center;}
+.detail-overlay.open{display:flex;}
+.detail-box{background:var(--card);border-radius:18px;border:0.5px solid var(--border);padding:1.4rem 1.5rem;width:370px;max-width:94vw;}
+.detail-color-bar{width:100%;height:5px;border-radius:99px;margin-bottom:1rem;}
+.detail-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.detail-time{font-size:12px;color:var(--text-2);margin-bottom:12px;}
+.detail-note{font-size:13px;color:var(--text);background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.55;white-space:pre-wrap;}
+.detail-links{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.detail-link-item{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 12px;text-decoration:none;color:var(--text);border:0.5px solid var(--border);transition:background .12s;cursor:pointer;}
+.detail-link-item:hover{background:#EDE9E1;}
+.detail-link-icon{font-size:20px;flex-shrink:0;}
+.detail-link-meta{overflow:hidden;}
+.detail-link-text{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.detail-link-label{font-size:10px;color:var(--text-3);margin-top:1px;}
+.detail-btns{display:flex;gap:8px;justify-content:flex-end;}
+.dbtn-edit{padding:8px 16px;font-size:12px;font-weight:500;border-radius:10px;border:0.5px solid var(--border);background:transparent;color:var(--text-2);cursor:pointer;}
+.dbtn-edit:hover{background:var(--bg);}
+.dbtn-close{padding:8px 18px;font-size:12px;font-weight:600;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;}
+.dbtn-close:hover{background:var(--accent2);}
+
+/* ADD/EDIT MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:400;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--card);border-radius:18px;border:0.5px solid var(--border);padding:1.5rem;width:400px;max-width:95vw;max-height:92vh;overflow-y:auto;}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:1rem;color:var(--text);}
+.modal label{font-size:11px;font-weight:500;color:var(--text-2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
+.modal input,.modal select,.modal textarea{width:100%;font-size:13px;padding:9px 11px;border-radius:10px;border:0.5px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:10px;outline:none;font-family:inherit;}
+.modal textarea{resize:vertical;min-height:52px;line-height:1.5;}
+.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,83,126,.1);}
+.color-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s;}
+.color-swatch:hover,.color-swatch.sel{transform:scale(1.2);border-color:rgba(0,0,0,.3);}
+.links-section{margin-bottom:8px;}
+.link-row{display:grid;grid-template-columns:1fr 100px 24px;gap:6px;align-items:center;margin-bottom:6px;}
+.link-row input{margin-bottom:0;}
+.remove-link{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:18px;padding:0;line-height:1;}
+.remove-link:hover{color:#c0392b;}
+.add-link-btn{font-size:12px;color:var(--accent);background:none;border:0.5px solid var(--accent);border-radius:8px;padding:6px 14px;cursor:pointer;margin-bottom:12px;display:inline-block;}
+.add-link-btn:hover{background:#FDF0F4;}
+.section-divider{font-size:11px;font-weight:500;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;padding-top:4px;}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;align-items:center;}
+.mbtn-c{padding:8px 14px;font-size:12px;font-weight:500;border-radius:10px;border:0.5px solid var(--border);background:transparent;color:var(--text-2);cursor:pointer;}
+.mbtn-c:hover{background:var(--bg);}
+.mbtn-s{padding:8px 18px;font-size:12px;font-weight:600;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;}
+.mbtn-s:hover{background:var(--accent2);}
+.del-btn{font-size:11px;color:var(--text-3);background:none;border:none;cursor:pointer;margin-right:auto;padding:4px 0;}
+.del-btn:hover{color:#c0392b;}
+
+.grid-scroll::-webkit-scrollbar,.modal::-webkit-scrollbar{width:4px;}
+.grid-scroll::-webkit-scrollbar-track,.modal::-webkit-scrollbar-track{background:transparent;}
+.grid-scroll::-webkit-scrollbar-thumb,.modal::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
+
+@media(max-width:580px){
+  body{padding:12px 8px;}
+  .h-day .dd{font-size:17px;}
+  .ev .et{font-size:10px;}
+  .link-row{grid-template-columns:1fr 80px 24px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <button class="nav-btn" id="prev-btn">&#8249;</button>
+    <h1 id="week-range"></h1>
+    <button class="nav-btn" id="next-btn">&#8250;</button>
+    <button class="today-btn" id="today-btn">Hari ini</button>
+  </div>
+  <button class="add-btn" onclick="openModal()">+ Tambah Jadwal</button>
+</div>
+
+<div class="cal-card">
+  <div class="cal-header">
+    <div class="h-corner"></div>
+    <div class="h-day" id="hd0"></div>
+    <div class="h-day" id="hd1"></div>
+    <div class="h-day" id="hd2"></div>
+    <div class="h-day" id="hd3"></div>
+    <div class="h-day" id="hd4"></div>
+  </div>
+  <div class="allday-row">
+    <div class="allday-label">seharian</div>
+    <div class="allday-cell" id="ad0"></div>
+    <div class="allday-cell" id="ad1"></div>
+    <div class="allday-cell" id="ad2"></div>
+    <div class="allday-cell" id="ad3"></div>
+    <div class="allday-cell" id="ad4"></div>
+  </div>
+  <div class="grid-scroll">
+    <div class="grid-body">
+      <div class="time-col" id="tcol"></div>
+      <div class="day-col" id="dc0"></div>
+      <div class="day-col" id="dc1"></div>
+      <div class="day-col" id="dc2"></div>
+      <div class="day-col" id="dc3"></div>
+      <div class="day-col" id="dc4"></div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="li"><div class="li-dot" style="background:var(--pink-bd)"></div>Rapat</div>
+    <div class="li"><div class="li-dot" style="background:var(--coral-bd)"></div>Deadline</div>
+    <div class="li"><div class="li-dot" style="background:var(--teal-bd)"></div>Belajar</div>
+    <div class="li"><div class="li-dot" style="background:var(--purple-bd)"></div>Pribadi</div>
+    <div class="li"><div class="li-dot" style="background:var(--amber-bd)"></div>Pengingat</div>
+    <div class="li"><div class="li-dot" style="background:var(--blue-bd)"></div>Acara</div>
+  </div>
+</div>
+
+<!-- DETAIL POPUP -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-box">
+    <div class="detail-color-bar" id="d-bar"></div>
+    <div class="detail-title" id="d-title"></div>
+    <div class="detail-time" id="d-time"></div>
+    <div class="detail-note" id="d-note" style="display:none"></div>
+    <div class="detail-links" id="d-links"></div>
+    <div class="detail-btns">
+      <button class="dbtn-edit" id="d-edit-btn">✏️ Edit</button>
+      <button class="dbtn-close" onclick="closeDetail()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modal-title">Jadwal Baru</h3>
+
+    <label>Judul Kegiatan</label>
+    <input id="m-title" type="text" placeholder="Nama kegiatan kamu..." autocomplete="off"/>
+
+    <label>Catatan (opsional)</label>
+    <textarea id="m-note" placeholder="Tambahkan catatan singkat..."></textarea>
+
+    <label>Hari</label>
+    <select id="m-day">
+      <option value="0">Senin</option>
+      <option value="1">Selasa</option>
+      <option value="2">Rabu</option>
+      <option value="3">Kamis</option>
+      <option value="4">Jumat</option>
+    </select>
+
+    <label>Seharian?</label>
+    <select id="m-allday" onchange="toggleTimeFields(this.value)">
+      <option value="no">Tidak — jadwal dengan waktu</option>
+      <option value="yes">Ya — seharian penuh</option>
+    </select>
+
+    <div id="time-fields">
+      <label>Jam Mulai (contoh: 9 = 09:00, 13.5 = 13:30)</label>
+      <input id="m-start" type="number" min="7" max="22" step="0.5" value="10"/>
+      <label>Durasi (jam)</label>
+      <input id="m-dur" type="number" min="0.25" max="8" step="0.25" value="1"/>
+    </div>
+
+    <label>Warna Blok</label>
+    <div class="color-row" id="color-row">
+      <div class="color-swatch sel" data-c="pink" style="background:var(--pink-bg);border-color:var(--pink-bd);" title="Merah Muda"></div>
+      <div class="color-swatch" data-c="teal" style="background:var(--teal-bg);border-color:var(--teal-bd);" title="Tosca"></div>
+      <div class="color-swatch" data-c="gray" style="background:var(--gray-bg);border-color:var(--gray-bd);" title="Abu-abu"></div>
+      <div class="color-swatch" data-c="coral" style="background:var(--coral-bg);border-color:var(--coral-bd);" title="Oranye"></div>
+      <div class="color-swatch" data-c="purple" style="background:var(--purple-bg);border-color:var(--purple-bd);" title="Ungu"></div>
+      <div class="color-swatch" data-c="amber" style="background:var(--amber-bg);border-color:var(--amber-bd);" title="Kuning Emas"></div>
+      <div class="color-swatch" data-c="blue" style="background:var(--blue-bg);border-color:var(--blue-bd);" title="Biru"></div>
+    </div>
+
+    <div class="section-divider">🔗 Tautan &amp; Materi Belajar</div>
+    <div id="links-section"></div>
+    <button class="add-link-btn" onclick="addLinkRow('','')">+ Tambah Link atau PDF</button>
+
+    <div class="mbtns">
+      <button class="del-btn" id="del-btn" onclick="deleteEditing()" style="display:none;">Hapus jadwal ini</button>
+      <button class="mbtn-c" onclick="closeModal()">Batal</button>
+      <button class="mbtn-s" onclick="saveEvent()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const HARI=['Sen','Sel','Rab','Kam','Jum'];
+const HARI_FULL=['Senin','Selasa','Rabu','Kamis','Jumat'];
+const BULAN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const SH=7,EH=23,SLOT=56;
+const STORAGE_KEY='jadwal_v4';
+const COLOR_HEX={pink:'#D4859A',teal:'#7AADA6',gray:'#A9A59E',coral:'#D4845A',purple:'#8B82D8',amber:'#C4A030',blue:'#6B9EC8'};
+const realNow=new Date();
+let weekOffset=0;
+let selectedColor='pink';
+let editingId=null;
+
+/* STORAGE */
+function loadData(){
+  try{const r=localStorage.getItem(STORAGE_KEY);if(!r)return{events:[],allDay:[],nextId:1};return JSON.parse(r);}
+  catch(e){return{events:[],allDay:[],nextId:1};}
+}
+function saveData(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify({events,allDay:allDayEvents,nextId}));}catch(e){}
+}
+function purgeExpired(){
+  const now=Date.now();
+  events=events.filter(e=>{
+    const base=getWeekStart(e.weekOffset);
+    const d=addDays(base,e.day);
+    const endH=e.start+e.dur;
+    d.setHours(Math.floor(endH),Math.round((endH%1)*60),0,0);
+    return d.getTime()>now;
+  });
+  allDayEvents=allDayEvents.filter(e=>{
+    const base=getWeekStart(e.weekOffset);
+    const d=addDays(base,e.day);
+    d.setHours(23,59,59,0);
+    return d.getTime()>now;
+  });
+  saveData();
+}
+
+let stored=loadData();
+let events=stored.events||[];
+let allDayEvents=stored.allDay||[];
+let nextId=stored.nextId||1;
+purgeExpired();
+
+/* HELPERS */
+function getWeekStart(offset){
+  const d=new Date(realNow);
+  const dow=d.getDay();
+  d.setDate(d.getDate()-(dow===0?6:dow-1)+(offset*7));
+  d.setHours(0,0,0,0);return d;
+}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function fmtShort(d){return`${d.getDate()} ${BULAN[d.getMonth()]}`;}
+function fmtTime(h){
+  const hh=Math.floor(h),mm=Math.round((h%1)*60);
+  return`${hh.toString().padStart(2,'0')}.${mm.toString().padStart(2,'0')}`;
+}
+function isPDF(url){return url.toLowerCase().includes('.pdf');}
+
+/* RENDER */
+function render(){
+  const ws=getWeekStart(weekOffset);
+  const we=addDays(ws,4);
+  document.getElementById('week-range').textContent=`${fmtShort(ws)} – ${fmtShort(we)}`;
+
+  for(let d=0;d<5;d++){
+    const date=addDays(ws,d);
+    const isT=date.toDateString()===realNow.toDateString();
+    const hd=document.getElementById('hd'+d);
+    hd.className='h-day'+(isT?' today':'');
+    hd.innerHTML=`<div class="dn">${HARI[d]}</div><div class="dd">${date.getDate()}</div>`;
+    document.getElementById('dc'+d).className='day-col'+(isT?' today-col':'');
+
+    const adC=document.getElementById('ad'+d);
+    adC.innerHTML='';
+    allDayEvents.filter(e=>e.day===d&&e.weekOffset===weekOffset).forEach(e=>{
+      const tag=document.createElement('div');
+      tag.className=`ad-tag ${e.color}`;
+      tag.textContent=e.title;
+      tag.onclick=()=>openDetail(e.id,true);
+      adC.appendChild(tag);
+    });
+  }
+
+  const tc=document.getElementById('tcol');
+  tc.innerHTML='';
+  for(let h=SH;h<EH;h++){
+    const s=document.createElement('div');
+    s.className='t-slot'+(h===12?' noon':'');
+    s.textContent=h===12?'Siang':`${h}:00`;
+    tc.appendChild(s);
+  }
+
+  for(let d=0;d<5;d++){
+    const dc=document.getElementById('dc'+d);
+    [...dc.querySelectorAll('.h-line,.ev,.now-line')].forEach(el=>el.remove());
+    for(let h=SH;h<EH;h++){
+      const hl=document.createElement('div');hl.className='h-line';dc.appendChild(hl);
+    }
+    const date=addDays(ws,d);
+    if(date.toDateString()===realNow.toDateString()){
+      const pct=(realNow.getHours()+realNow.getMinutes()/60-SH)*SLOT;
+      if(pct>=0){
+        const nl=document.createElement('div');
+        nl.className='now-line';nl.style.top=Math.round(pct)+'px';
+        nl.innerHTML='<div class="now-dot"></div><div class="now-bar"></div>';
+        dc.appendChild(nl);
+      }
+    }
+    events.filter(e=>e.day===d&&e.weekOffset===weekOffset).forEach(e=>{
+      const top=(e.start-SH)*SLOT;
+      const ht=e.dur*SLOT-4;
+      const el=document.createElement('div');
+      el.className=`ev ${e.color}`;
+      el.style.cssText=`top:${Math.round(top)}px;height:${Math.round(ht)}px;`;
+      const hasLinks=e.links&&e.links.length>0;
+      el.innerHTML=`<div class="et">${escHtml(e.title)}</div>${e.note?`<div class="es">${escHtml(e.note)}</div>`:''}${hasLinks?`<div class="link-icon">🔗 ${e.links.length} tautan</div>`:''}`;
+      el.onclick=()=>openDetail(e.id,false);
+      dc.appendChild(el);
+    });
+  }
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* DETAIL */
+function openDetail(id,isAllDay){
+  const list=isAllDay?allDayEvents:events;
+  const e=list.find(x=>x.id===id);
+  if(!e)return;
+
+  document.getElementById('d-bar').style.background=COLOR_HEX[e.color]||'#D4859A';
+  document.getElementById('d-title').textContent=e.title;
+
+  const ws=getWeekStart(e.weekOffset);
+  const date=addDays(ws,e.day);
+  let ts=`${HARI_FULL[e.day]}, ${fmtShort(date)}`;
+  if(!isAllDay) ts+=` · ${fmtTime(e.start)} – ${fmtTime(e.start+e.dur)}`;
+  else ts+=' · Seharian';
+  document.getElementById('d-time').textContent=ts;
+
+  const noteEl=document.getElementById('d-note');
+  if(e.note){noteEl.textContent=e.note;noteEl.style.display='block';}
+  else noteEl.style.display='none';
+
+  const linksEl=document.getElementById('d-links');
+  linksEl.innerHTML='';
+  (e.links||[]).forEach(lk=>{
+    const a=document.createElement('a');
+    a.href=lk.url;a.target='_blank';a.rel='noopener noreferrer';
+    a.className='detail-link-item';
+    const pdf=isPDF(lk.url)||lk.label.toLowerCase().includes('pdf');
+    a.innerHTML=`<span class="detail-link-icon">${pdf?'📄':'🔗'}</span><div class="detail-link-meta"><div class="detail-link-text">${escHtml(lk.label||lk.url)}</div><div class="detail-link-label">${pdf?'Klik untuk buka PDF':'Klik untuk buka tautan'}</div></div>`;
+    linksEl.appendChild(a);
+  });
+
+  document.getElementById('d-edit-btn').onclick=()=>{closeDetail();openEdit(id,isAllDay);};
+  document.getElementById('detail-overlay').classList.add('open');
+}
+function closeDetail(){document.getElementById('detail-overlay').classList.remove('open');}
+document.getElementById('detail-overlay').addEventListener('click',function(e){if(e.target===this)closeDetail();});
+
+/* MODAL */
+function toggleTimeFields(v){
+  document.getElementById('time-fields').style.display=v==='yes'?'none':'block';
+}
+document.getElementById('color-row').addEventListener('click',function(e){
+  const sw=e.target.closest('.color-swatch');
+  if(!sw)return;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('sel'));
+  sw.classList.add('sel');selectedColor=sw.dataset.c;
+});
+
+function addLinkRow(url,label){
+  const sec=document.getElementById('links-section');
+  const row=document.createElement('div');
+  row.className='link-row';
+  row.innerHTML=`<input type="text" class="link-url" placeholder="https://... atau link PDF" value="${escHtml(url)}"/><input type="text" class="link-label" placeholder="Nama tautan" value="${escHtml(label)}"/><button class="remove-link" onclick="this.parentElement.remove()">×</button>`;
+  sec.appendChild(row);
+}
+
+function collectLinks(){
+  return[...(document.querySelectorAll('#links-section .link-row'))].map(r=>({
+    url:r.querySelector('.link-url').value.trim(),
+    label:r.querySelector('.link-label').value.trim()
+  })).filter(l=>l.url);
+}
+
+function openModal(){
+  editingId=null;
+  document.getElementById('modal-title').textContent='Jadwal Baru';
+  document.getElementById('m-title').value='';
+  document.getElementById('m-note').value='';
+  document.getElementById('m-start').value=10;
+  document.getElementById('m-dur').value=1;
+  document.getElementById('m-allday').value='no';
+  document.getElementById('time-fields').style.display='block';
+  document.getElementById('links-section').innerHTML='';
+  document.getElementById('del-btn').style.display='none';
+  selectSwatch('pink');
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('m-title').focus(),80);
+}
+function openEdit(id,isAllDay){
+  const list=isAllDay?allDayEvents:events;
+  const e=list.find(x=>x.id===id);if(!e)return;
+  editingId={id,isAllDay};
+  document.getElementById('modal-title').textContent='Edit Jadwal';
+  document.getElementById('m-title').value=e.title;
+  document.getElementById('m-note').value=e.note||'';
+  document.getElementById('m-day').value=e.day;
+  document.getElementById('m-allday').value=isAllDay?'yes':'no';
+  toggleTimeFields(isAllDay?'yes':'no');
+  document.getElementById('m-start').value=isAllDay?10:e.start;
+  document.getElementById('m-dur').value=isAllDay?1:e.dur;
+  document.getElementById('links-section').innerHTML='';
+  (e.links||[]).forEach(lk=>addLinkRow(lk.url,lk.label));
+  document.getElementById('del-btn').style.display='inline-block';
+  selectSwatch(e.color||'pink');
+  document.getElementById('overlay').classList.add('open');
+}
+function selectSwatch(c){
+  selectedColor=c;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.c===c));
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');editingId=null;}
+document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+function saveEvent(){
+  const title=document.getElementById('m-title').value.trim();
+  if(!title){document.getElementById('m-title').focus();return;}
+  const day=parseInt(document.getElementById('m-day').value);
+  const start=parseFloat(document.getElementById('m-start').value);
+  const dur=parseFloat(document.getElementById('m-dur').value);
+  const note=document.getElementById('m-note').value.trim();
+  const isAllDay=document.getElementById('m-allday').value==='yes';
+  const color=selectedColor;
+  const links=collectLinks();
+  const wo=weekOffset;
+  const payload={title,note,day,start,dur,color,links,weekOffset:wo};
+
+  if(editingId){
+    const list=editingId.isAllDay?allDayEvents:events;
+    const idx=list.findIndex(x=>x.id===editingId.id);
+    if(idx>-1){
+      if(isAllDay===editingId.isAllDay){Object.assign(list[idx],payload);}
+      else{list.splice(idx,1);(isAllDay?allDayEvents:events).push({id:nextId++,...payload});}
+    }
+  } else {
+    (isAllDay?allDayEvents:events).push({id:nextId++,...payload});
+  }
+  saveData();closeModal();render();
+}
+function deleteEditing(){
+  if(!editingId||!confirm('Hapus jadwal ini?'))return;
+  const list=editingId.isAllDay?allDayEvents:events;
+  const idx=list.findIndex(x=>x.id===editingId.id);
+  if(idx>-1)list.splice(idx,1);
+  saveData();closeModal();render();
+}
+
+document.getElementById('prev-btn').onclick=()=>{weekOffset--;render();};
+document.getElementById('next-btn').onclick=()=>{weekOffset++;render();};
+document.getElementById('today-btn').onclick=()=>{weekOffset=0;render();};
+document.getElementById('m-title').addEventListener('keydown',e=>{if(e.key==='Enter')saveEvent();});
+
+render();
+setInterval(()=>{purgeExpired();if(weekOffset===0)render();},60000);
+</script>
+</body>
+</html>
